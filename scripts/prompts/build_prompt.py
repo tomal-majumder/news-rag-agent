@@ -1,21 +1,20 @@
 def build_local_prompt(question, context):
+
     return f"""You are a helpful news assistant.
+        Answer the following question based on the context below.
+        Question: {question}
 
-Answer the following question in a detailed, well-structured, and grammatically correct manner using the information from the news articles below.
+        Context:   
+        {context}
 
-News Articles:
-{context}
-
-Question: {question}
-Answer:"""
+        Answer:"""
 
 def build_web_prompt(question, web_snippets):
     return f"""You are a helpful news assistant.
+        Answer the following question based on the context below.
+        Question: {question}
 
-The local news archive did not contain enough information, so the assistant retrieved relevant snippets from the web.
+        Context:   
+        {web_snippets}
 
-Web Search Results:
-{web_snippets}
-
-Question: {question}
-Answer:"""
+        Answer:"""

@@ -1,29 +1,29 @@
-import argparse
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 from scripts.retrieval.chromadb_retriever import chromadb_retriever, retrieve_chunks
-from scripts.utils.create_chromadb_collection import create_chromadb_collection
-from scripts.utils.get_embedding_function import get_embedding_function
-from scripts.utils.build_context_from_chunks import build_context_from_chunks
 from scripts.prompts.build_prompt import build_local_prompt
 from scripts.prompts.build_prompt import build_web_prompt
 from scripts.agents.web_search_agent import run_web_search
 from scripts.agents.llm_client import generate_llm_answer
 from scripts.utils.should_fallback_to_web import should_fallback_to_web
+import time
+# Global singleton cache
+vector_store = chromadb_retriever()
 
-def main():
-    parser = argparse.ArgumentParser(description="Answer questions using RAG pipeline")
-    parser.add_argument('--question', type=str, help="Question to answer")
-    args = parser.parse_args()
-    
-    question = args.question
+def answer_question(question):
+    start_time = time.time()
+
     if not question:
         print("Please provide a question using --question argument.")
         return
     
     # first retrieve relevant chunks
-    vector_store = chromadb_retriever()
+    # vector_store = chromadb_retriever()
     if not vector_store:
         print("Failed to initialize vector store.")
         return
+    
     chunks, scores = retrieve_chunks(vector_store, question)
     if not chunks:
         print("No relevant chunks found.")
@@ -41,10 +41,18 @@ def main():
     
 
     # then use LLM to answer the question
-    print("Generating answer using LLM...")
     answer = generate_llm_answer(prompt)
-    print("Answer generated:")
-    print(answer)
-    
-if __name__ == "__main__":
-    main()
+    elapsed_time = time.time() - start_time
+    return answer, elapsed_time
+
+import time
+
+def answer_question_stream(question):
+    answer = answer_question(question)
+    if not answer:
+        yield "No answer generated."
+        return
+
+    for word in answer.split():
+        yield word + " "
+        time.sleep(0.1)  # simulate typing delay

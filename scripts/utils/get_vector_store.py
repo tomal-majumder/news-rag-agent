@@ -1,5 +1,5 @@
 from scripts.utils.get_device import get_device
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 import chromadb
 
 def get_vector_store(chroma_path, collection_name, embeddings):

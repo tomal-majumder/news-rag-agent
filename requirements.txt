@@ -1,11 +1,6 @@
 pandas
 numpy
 langchain-community
-langchain
-langchain-openai
-langchain-text-splitters
-langchain-embeddings
-langchain-vectorstores     
 sentence-transformers
 langchain_experimental
 transformers
@@ -15,11 +10,7 @@ torch
 datasets
 tiktoken
 groq
-re
-os
-sys
-json
-logging
-time
-requests
 python-dotenv
+fastapi
+uvicorn
+pydantic

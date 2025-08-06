@@ -1,11 +1,11 @@
 from groq import Groq
 from dotenv import load_dotenv
 import os
-load_dotenv()  # Loads .env at runtime
+load_dotenv() 
 
-def generate_llm_answer(prompt, model="llama3-70b-8192", max_tokens=250):
-    api_key = os.getenv("GROQ_API_KEY")
-    client = Groq(api_key=api_key)
+api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=api_key)
+def generate_llm_answer(prompt, model="llama3-70b-8192", max_tokens=500):
     try:
         response = client.chat.completions.create(
             model=model,

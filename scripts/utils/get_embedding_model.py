@@ -1,6 +1,6 @@
 import time
 from scripts.utils.get_device import get_device
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 def get_embedding_model():
     """Test 2: Initialize and test embedding model with auto device"""

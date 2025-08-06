@@ -10,6 +10,16 @@ sentence-transformers
 langchain_experimental
 transformers
 chromadb
+tavily-python
 torch
 datasets
 tiktoken
+groq
+re
+os
+sys
+json
+logging
+time
+requests
+python-dotenv

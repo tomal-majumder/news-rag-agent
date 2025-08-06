@@ -24,19 +24,8 @@ def get_embedding_model():
         )
         load_time = time.time() - start_time
         print(f"Model loaded in {load_time:.2f} seconds")
-
-        # Test embedding
-        test_text = "This is a test article about artificial intelligence."
-        start_time = time.time()
-        embedding = embeddings.embed_query(test_text)
-        embed_time = time.time() - start_time
-
-        print(f"Embedding generated in {embed_time:.3f} seconds")
-        print(f"Embedding dimension: {len(embedding)}")
-        print(f"Embedding sample: {embedding[:5]}...")
-
         return embeddings
 
     except Exception as e:
-        print(f"❌ Embedding model failed: {e}")
+        print(f"Embedding model failed: {e}")
         return None

@@ -1,14 +1,14 @@
-from scripts.retrieval.chromadb_retriever import chromadb_retriever
-from scripts.utils.get_vector_store import get_vector_store
-from scripts.utils.get_embedding_model import get_embedding_model
 from scripts.Main.answer import answer_question
+from scripts.Main.answer import answer_question_stream
 
 def main():
     print("Running vector store test...")
-    result, time = answer_question("What is the news on USA election?")
+    # result, time = answer_question("What is the news on USA election?")
+    result = answer_question("Has Donald Trump been taken COVID seriously?")
+    # result, time = answer_question("What is the news on USA election?", stream=True)
+
     print("Test completed. Result:")
     print(result)
-    print(f"Time taken: {time:.2f} seconds")
 
 
 

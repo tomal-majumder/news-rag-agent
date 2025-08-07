@@ -43,7 +43,10 @@ def answer_question(question):
     # then use LLM to answer the question
     answer = generate_llm_answer(prompt)
     elapsed_time = time.time() - start_time
-    return answer, elapsed_time
+    return {
+        "answer": answer,
+        "time_taken_seconds": elapsed_time
+    }
 
 import time
 

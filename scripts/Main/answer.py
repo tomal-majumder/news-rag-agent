@@ -25,17 +25,22 @@ def answer_question(question):
         return
     
     chunks, scores = retrieve_chunks(vector_store, question)
+    sources = []
     if not chunks:
         print("No relevant chunks found.")
         return
     print(f"Retrieved {len(chunks)} chunks with scores: {scores}")
+    print(chunks)
 
     # then build prompt
     if should_fallback_to_web(scores):
         print("Not enough relevant context found in local archive. Using web fallback...")
-        web_snippets = run_web_search(question)
+        web_snippets, urls = run_web_search(question)
+        sources = urls if urls else ["Web Search"]
         prompt = build_web_prompt(question, web_snippets)
     else:
+        sources = [chunk.metadata.get("url") if chunk.metadata.get("url") 
+                            else chunk.metadata.get("title", "Unknown") for chunk in chunks]
         context = "\n\n".join([chunk.page_content for chunk in chunks])
         prompt = build_local_prompt(question, context)
     
@@ -45,6 +50,7 @@ def answer_question(question):
     elapsed_time = time.time() - start_time
     return {
         "answer": answer,
+        "sources": sources,
         "time_taken_seconds": elapsed_time
     }
 
@@ -59,3 +65,4 @@ def answer_question_stream(question):
     for word in answer.split():
         yield word + " "
         time.sleep(0.1)  # simulate typing delay
+

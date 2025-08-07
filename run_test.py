@@ -6,8 +6,6 @@ def main():
     # result, time = answer_question("What is the news on USA election?")
     result = answer_question("Has Donald Trump been taken COVID seriously?")
     # result, time = answer_question("What is the news on USA election?", stream=True)
-
-    print("Test completed. Result:")
     print(result)
 
 

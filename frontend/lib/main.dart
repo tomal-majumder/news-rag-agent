@@ -11,7 +11,7 @@ class NewsAIApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NewsAI',
+      title: 'NewsRoom AI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: const Color(0xFFF2F2F2),

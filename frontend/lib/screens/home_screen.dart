@@ -240,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text("NewsAI", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("NewsRoom AI", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,

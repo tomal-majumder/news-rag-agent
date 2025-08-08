@@ -227,7 +227,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Ask News AI',
+                'Ask AI',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -442,7 +442,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Ask News AI'),
+        title: const Text('Ask AI'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,

@@ -1,8 +1,8 @@
 import argparse
-from scripts.dataset_loading.load_data import load_sample_data
-from scripts.utils.get_embedding_function import get_embedding_function
-from scripts.utils.get_embedding_model import get_embedding_model
-from scripts.utils.build_chromadb_from_articles import build_chromadb_from_articles
+from app.scripts.dataset_loading.load_data import load_sample_data
+from app.scripts.utils.get_embedding_function import get_embedding_function
+from app.scripts.utils.get_embedding_model import get_embedding_model
+from app.scripts.utils.build_chromadb_from_articles import build_chromadb_from_articles
 
 def main():
     parser = argparse.ArgumentParser(description="Build ChromaDB from news articles")

@@ -1,7 +1,7 @@
-from scripts.utils.create_chromadb_collection import create_chromadb_collection
-from scripts.utils.create_documents_batch import create_documents_batch
-from scripts.utils.get_memory_usage import get_memory_usage
-from scripts.utils.get_gpu_info import get_gpu_info
+from app.scripts.utils.create_chromadb_collection import create_chromadb_collection
+from app.scripts.utils.create_documents_batch import create_documents_batch
+from app.scripts.utils.get_memory_usage import get_memory_usage
+from app.scripts.utils.get_gpu_info import get_gpu_info
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import gc
 import time

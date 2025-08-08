@@ -1,4 +1,4 @@
-from scripts.utils.get_device import get_device
+from app.scripts.utils.get_device import get_device
 from langchain_community.vectorstores import Chroma
 import chromadb
 

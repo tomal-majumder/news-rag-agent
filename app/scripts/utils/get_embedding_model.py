@@ -1,5 +1,5 @@
 import time
-from scripts.utils.get_device import get_device
+from app.scripts.utils.get_device import get_device
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 def get_embedding_model():

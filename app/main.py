@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
-from scripts.Main.answer import answer_question
+from app.scripts.Main.answer import answer_question
 from app.databases.database import get_db, create_tables
 from app.databases.crud import NewsService
 from app.services.background_tasks import BackgroundTaskService

@@ -1,12 +1,12 @@
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from scripts.retrieval.chromadb_retriever import chromadb_retriever, retrieve_chunks
-from scripts.prompts.build_prompt import build_local_prompt
-from scripts.prompts.build_prompt import build_web_prompt
-from scripts.agents.web_search_agent import run_web_search
-from scripts.agents.llm_client import generate_llm_answer
-from scripts.utils.should_fallback_to_web import should_fallback_to_web
+from app.scripts.retrieval.chromadb_retriever import chromadb_retriever, retrieve_chunks
+from app.scripts.prompts.build_prompt import build_local_prompt
+from app.scripts.prompts.build_prompt import build_web_prompt
+from app.scripts.agents.web_search_agent import run_web_search
+from app.scripts.agents.llm_client import generate_llm_answer
+from app.scripts.utils.should_fallback_to_web import should_fallback_to_web
 import time
 # Global singleton cache
 vector_store = chromadb_retriever()

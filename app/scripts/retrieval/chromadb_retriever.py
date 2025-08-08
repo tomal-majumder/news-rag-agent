@@ -1,6 +1,6 @@
 import os
-from scripts.utils.get_embedding_model import get_embedding_model
-from scripts.utils.get_vector_store import get_vector_store
+from app.scripts.utils.get_embedding_model import get_embedding_model
+from app.scripts.utils.get_vector_store import get_vector_store
 
 embeddings = get_embedding_model()
 sample_type = 'tiny'  # Example sample type

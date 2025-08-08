@@ -1,5 +1,5 @@
-from scripts.Main.answer import answer_question
-from scripts.Main.answer import answer_question_stream
+from app.scripts.Main.answer import answer_question
+from app.scripts.Main.answer import answer_question_stream
 
 def main():
     print("Running vector store test...")

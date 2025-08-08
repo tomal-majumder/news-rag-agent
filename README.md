@@ -2,6 +2,8 @@
 
 Intelligent news aggregation platform with AI-powered chat assistant for instant news insights and analysis.
 
+![Demo GIF](assets/news_room_demo.gif)
+
 ## ✨ Features
 
 ### 📱 Smart News Feed
@@ -158,7 +160,7 @@ While the app is running:
 - Press r for hot reload
 - Press R for hot restart
 
-## Comming Next:
+## Coming Next:
 
 - Folder Structure
 - API docs

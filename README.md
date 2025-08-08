@@ -1,23 +1,40 @@
-# News Q/A Agent using RAG + ChromaDB + Multi-Agent Prompting
+# NewsRoom AI
 
-This project builds an intelligent Q/A agent that answers questions from a 2018–2020 news dataset using Retrieval-Augmented Generation (RAG).
+Intelligent news aggregation platform with AI-powered chat assistant for instant news insights and analysis.
 
-## Features
+## ✨ Features
 
-- 📚 Recursive + Semantic Chunking
-- 🧠 Vector Storage with ChromaDB
-- 🤖 Multi-agent retrieval with fallback prompts
-- 🔌 FastAPI backend (in progress)
-- 📱 Flutter frontend (in progress)
+### 📱 Smart News Feed
 
-## Folder Structure
+- **Real-time News Aggregation** - Automatically fetches latest articles from multiple sources
+- **AI-Generated Summaries** - Get key insights without reading full articles
+- **Intelligent Topic Classification**- Auto-categorized by AI (Technology, Business, Health, etc.)
+- **Advanced Filtering** - Filter by topic, source, date range, and search keywords
+- **Infinite Scroll** - Seamless pagination with pull-to-refresh
 
-- `scripts/` – Data chunking, storage, and retrieval logic
-- `backend/` – FastAPI service for Q/A
-- `frontend/` – Flutter mobile frontend
-- `data/` – Raw, processed, and sample datasets
+### 🤖 AI Chat Assistant (RAG)
 
-## Local Setup with Virtual Environment
+- **Context-Aware Conversations** - Ask questions about any news article
+- **RAG (Retrieval Augmented Generation)** - AI searches your news database for accurate answers
+- **Multi-Article Analysis** - Compare and analyze multiple articles
+- **Natural Language Queries** - Ask in plain English: "What happened with tech stocks today?"
+
+### 🎨 Modern UI/UX
+
+- **Material Design 3** - Beautiful, responsive interface
+- **Cross-Platform** - Works on iOS, Android, and Web
+
+## Quick Start
+
+### Preequisites:
+
+- Flutter SDK (3.0+)
+- Python (3.8+)
+- PostGreSQL or SQLite
+- Groq API Key
+- Tavily API KEY
+
+### Local Setup with Virtual Environment
 
 1. **Clone the repo**
    ```bash
@@ -51,6 +68,7 @@ This project builds an intelligent Q/A agent that answers questions from a 2018�
    ```bash
    GROQ_API_KEY=your_groq_key
    TAVILY_API_KEY=your_tavily_key
+   DATABASE_URL=sqlite:///./news.db or PostGreSQL url
    ```
 
 5. **Run a chunking job (example)**
@@ -59,50 +77,32 @@ This project builds an intelligent Q/A agent that answers questions from a 2018�
    python scripts/chunking/run_chunking.py --sample_type tiny --splitter semantic
    ```
 
-6. **Run the backend API**
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-7. **Deactivate when finished**
-   ```bash
-   deactivate
-   ```
+   **Note:** Do not forget to commit your .env.example and add venv/ to .gitignore.
 
-**Note:** Do not forget to commit your .env.example and add venv/ to .gitignore.
+## Run the backend API
 
-# 🚀 Flutter Frontend – Local Development Setup
+From the root folder, type the following command to start the backend.
+
+```bash
+uvicorn app.main:app --reload
+```
+
+This will start backend on http://localhost:3000.
+
+## Run Flutter Frontend
 
 This guide explains how to run the Flutter frontend locally, including web support via `localhost:3000`.
 
----
-
-## 📦 Prerequisites
-
-Make sure the following tools are installed on your system:
-
-- ✅ [Flutter SDK](https://flutter.dev/docs/get-started/install)  
-   **macOS** users can install via Homebrew:
-  ```bash
-  brew install flutter
-  ✅ Dart SDK (comes bundled with Flutter)
-  ```
-
-✅ Android Studio or VS Code
-
-✅ Mobile emulator or real device (Android/iOS)
-
-To verify that everything is set up correctly:
+1. To verify that flutter is set up correctly:
 
 ```bash
 flutter doctor
 ```
 
-## 🛠️ Installation Steps
-
-1. Clone the repository
+2. Cd to frontend folder
 
 ```bash
-cd your-project/flutter-frontend  # Adjust this path if needed
+cd frontend  # Adjust this path if needed
 ```
 
 2. Get Flutter packages
@@ -157,3 +157,10 @@ While the app is running:
 
 - Press r for hot reload
 - Press R for hot restart
+
+## Comming Next:
+
+- Folder Structure
+- API docs
+- Tests
+- Docker Deployment

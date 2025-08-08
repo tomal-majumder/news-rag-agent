@@ -89,11 +89,11 @@ From the root folder, type the following command to start the backend.
 uvicorn app.main:app --reload
 ```
 
-This will start backend on http://localhost:3000.
+This will start backend on http://localhost:8000.
 
 ## Run Flutter Frontend
 
-This guide explains how to run the Flutter frontend locally, including web support via `localhost:3000`.
+This guide explains how to run the Flutter frontend locally, including web support via `localhost:8000`.
 
 1. To verify that flutter is set up correctly:
 

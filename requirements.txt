@@ -14,3 +14,12 @@ python-dotenv
 fastapi
 uvicorn
 pydantic
+python-multipart
+sqlalchemy
+psycopg2-binary # PostgreSQL driver 
+feedparser
+requests
+Beautifulsoup4
+html5lib
+apscheduler # For background tasks
+aiohttp # For async HTTP requests

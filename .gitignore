@@ -6,3 +6,4 @@ data/vector_store
 __pycache__
 news-rag-env
 .python-version
+.DS_Store

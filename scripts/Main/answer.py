@@ -30,7 +30,6 @@ def answer_question(question):
         print("No relevant chunks found.")
         return
     print(f"Retrieved {len(chunks)} chunks with scores: {scores}")
-    print(chunks)
 
     # then build prompt
     if should_fallback_to_web(scores):

@@ -1,8 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from app.core.settings import DATABASE_URL
+
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./news.db")  # Default to SQLite for local development
+# DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./news.db")  # Default to SQLite for local development
 # You can set this in your .env file or directly here.
 # For development: "sqlite:///./news.db"
 # for production: "postgresql://user:password@host:port/dbname"

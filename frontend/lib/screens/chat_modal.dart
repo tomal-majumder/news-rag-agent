@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import '../widgets/typing_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,6 +22,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
   List<Map<String, dynamic>> chatHistory = [];
   bool _isTyping = false;
   int? _selectedChatIndex;
+  StreamSubscription<String>? _streamSubscription;
 
   final List<String> _suggestedQuestions = [
     "What's happening in tech today?",
@@ -47,6 +49,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
   @override
   void dispose() {
     _fadeController.dispose();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -113,6 +116,154 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     });
   }
 
+  Stream<String> _streamResponse(String message) async* {
+    final request = http.Request(
+      'POST',
+      Uri.parse('http://localhost:8000/ask/stream'),
+    );
+    
+    request.headers.addAll({
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+    });
+    
+    request.body = jsonEncode({'question': message});
+    
+    final streamedResponse = await request.send();
+    
+    if (streamedResponse.statusCode == 200) {
+      await for (var chunk in streamedResponse.stream.transform(utf8.decoder)) {
+        // Handle Server-Sent Events format
+        final lines = chunk.split('\n');
+        for (var line in lines) {
+          if (line.startsWith('data: ')) {
+            final data = line.substring(6); // Remove 'data: ' prefix
+            if (data.trim().isNotEmpty && data != '[DONE]') {
+              yield data;
+            }
+          }
+        }
+      }
+    } else {
+      throw Exception('Failed to connect to streaming endpoint');
+    }
+  }
+
+  Future<void> _sendMessageStream([String? predefinedMessage]) async {
+    final messageText = predefinedMessage ?? _controller.text.trim();
+    if (messageText.isEmpty || _isTyping) return;
+
+    setState(() {
+      _messages.add({'text': messageText, 'isUser': true});
+      if (predefinedMessage == null) _controller.clear();
+      _isTyping = true;
+    });
+    _scrollToBottom();
+
+    // Add a status message that will be updated
+    setState(() {
+      _messages.add({
+        'isStatus': true,
+        'text': 'Thinking...',
+        'step': 'init'
+      });
+    });
+    _scrollToBottom();
+
+    String currentAnswer = '';
+    List<String> sources = [];
+    
+    try {
+                _streamSubscription = _streamResponse(messageText).listen(
+        (data) {
+          try {
+            final update = jsonDecode(data);
+            
+            setState(() {
+              // Remove the last message if it's a status
+              if (_messages.isNotEmpty && _messages.last['isStatus'] == true) {
+                _messages.removeLast();
+              }
+
+              switch (update['type']) {
+                case 'status':
+                  _messages.add({
+                    'isStatus': true,
+                    'text': update['message'],
+                    'step': update['step'],
+                  });
+                  break;
+                
+                case 'complete':
+                  final data = update['data'];
+                  currentAnswer = data['answer'];
+                  sources = List<String>.from(data['sources'] ?? []);
+                  
+                  _messages.add({
+                    'text': currentAnswer,
+                    'isUser': false,
+                    'sources': sources,
+                    'method': data['method'],
+                    'timeTaken': data['time_taken_seconds'],
+                  });
+                  _isTyping = false;
+                  break;
+                
+                case 'error':
+                  _messages.add({
+                    'text': "❌ Error: ${update['message']}",
+                    'isUser': false,
+                  });
+                  _isTyping = false;
+                  break;
+              }
+            });
+            _scrollToBottom();
+          } catch (e) {
+            print('Error parsing stream data: $e');
+          }
+        },
+        onError: (error) {
+          setState(() {
+            if (_messages.isNotEmpty && 
+                (_messages.last['isStatus'] == true || 
+                 _messages.last['isPartialAnswer'] == true)) {
+              _messages.removeLast();
+            }
+            _messages.add({
+              'text': "❌ Connection error: $error",
+              'isUser': false,
+            });
+            _isTyping = false;
+          });
+          _scrollToBottom();
+        },
+        onDone: () {
+          setState(() {
+            _isTyping = false;
+          });
+        },
+      );
+      
+    } catch (e) {
+      setState(() {
+        if (_messages.isNotEmpty && 
+            (_messages.last['isStatus'] == true || 
+             _messages.last['isPartialAnswer'] == true)) {
+          _messages.removeLast();
+        }
+        _messages.add({
+          'text': "❌ Error: $e",
+          'isUser': false,
+        });
+        _isTyping = false;
+      });
+      _scrollToBottom();
+    }
+  }
+
+  // Fallback to original method if streaming fails
   Future<void> _sendMessage([String? predefinedMessage]) async {
     final messageText = predefinedMessage ?? _controller.text.trim();
     if (messageText.isEmpty || _isTyping) return;
@@ -193,6 +344,87 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     }
   }
 
+  Widget _buildStatusMessage(Map<String, dynamic> message) {
+    final step = message['step'] ?? '';
+    final details = message['details'];
+    
+    IconData icon;
+    MaterialColor color;
+    
+    switch (step) {
+      case 'init_vectorstore':
+        icon = Icons.storage;
+        color = Colors.blue;
+        break;
+      case 'local_search':
+        icon = Icons.search;
+        color = Colors.orange;
+        break;
+      case 'web_search':
+        icon = Icons.public;
+        color = Colors.green;
+        break;
+      case 'generate_answer':
+        icon = Icons.psychology;
+        color = Colors.purple;
+        break;
+      default:
+        icon = Icons.info;
+        color = Colors.grey;
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message['text'],
+                  style: TextStyle(
+                    color: color.shade700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (details != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Found ${details['chunk_count'] ?? details['source_count'] ?? ''} items',
+                    style: TextStyle(
+                      color: color.shade600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
   Widget _buildWelcomeScreen() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -236,7 +468,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 12),
               Text(
-                'Get the latest news and insights',
+                'Get the latest news and insights with live feedback',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade600,
@@ -257,7 +489,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                 runSpacing: 12,
                 children: _suggestedQuestions.map((question) {
                   return GestureDetector(
-                    onTap: () => _sendMessage(question),
+                    onTap: () => _sendMessageStream(question),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
@@ -446,6 +678,26 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          // Toggle streaming mode (optional)
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // You can add settings here
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'streaming',
+                child: Row(
+                  children: [
+                    Icon(Icons.stream, size: 16),
+                    SizedBox(width: 8),
+                    Text('Streaming Mode'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Row(
         children: [
@@ -467,6 +719,15 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                           final message = _messages[index];
                           final isUser = message['isUser'] ?? false;
 
+                          // Handle status messages
+                          if (message['isStatus'] == true) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: _buildStatusMessage(message),
+                            );
+                          }
+
+                          // Handle legacy typing indicator
                           if (message['isTyping'] == true) {
                             return Align(
                               alignment: Alignment.centerLeft,
@@ -490,6 +751,8 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                           }
 
                           final sources = message['sources'] as List<dynamic>?;
+                          final method = message['method'] as String?;
+                          final timeTaken = message['timeTaken'] as double?;
 
                           return Align(
                             alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -528,6 +791,43 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ),
+                                
+                                // Show method and timing info
+                                if (!isUser && (method != null || timeTaken != null))
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 16, bottom: 4),
+                                    child: Row(
+                                      children: [
+                                        if (method != null)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: method == 'web_search' ? Colors.green.shade100 : Colors.blue.shade100,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              method == 'web_search' ? 'Web' : 'Local',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: method == 'web_search' ? Colors.green.shade700 : Colors.blue.shade700,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        if (method != null && timeTaken != null) const SizedBox(width: 8),
+                                        if (timeTaken != null)
+                                          Text(
+                                            '${timeTaken.toStringAsFixed(1)}s',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                
+                                // Sources
                                 if (!isUser && sources != null && sources.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 16, bottom: 8),
@@ -599,7 +899,8 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 12),
                             ),
-                            onSubmitted: (_) => _sendMessage(),
+                            onSubmitted: (_) => _sendMessageStream(),
+                            enabled: !_isTyping,
                           ),
                         ),
                       ),
@@ -612,8 +913,17 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white),
-                          onPressed: _sendMessage,
+                          icon: _isTyping 
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.send, color: Colors.white),
+                          onPressed: _isTyping ? null : _sendMessageStream,
                         ),
                       ),
                     ],

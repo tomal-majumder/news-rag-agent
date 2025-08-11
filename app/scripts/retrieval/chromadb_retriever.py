@@ -1,13 +1,12 @@
 import os
 from app.scripts.utils.get_embedding_model import get_embedding_model
 from app.scripts.utils.get_vector_store import get_vector_store
+from app.core.settings import CHROMA_DIR, SAMPLE_TYPE
 
 embeddings = get_embedding_model()
-sample_type = 'tiny'  # Example sample type
+chroma_path = str(CHROMA_DIR)
+collection_name = f"news_articles_{SAMPLE_TYPE}"
 
-chroma_path = os.path.join('data', 'vector_store', sample_type)
-
-collection_name = "news_articles_" + sample_type
 vector_store = get_vector_store(chroma_path, collection_name, embeddings)
 
 def chromadb_retriever():    

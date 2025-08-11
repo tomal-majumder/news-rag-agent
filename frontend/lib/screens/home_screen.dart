@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'dart:convert';
 import '../widgets/news_card.dart';
 import '../widgets/floating_chat_button.dart';
@@ -176,51 +177,70 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadNews(isRefresh: true);
   }
 
-  void _showDateRangePicker() async {
-    final DateTimeRange? picked = await showDateRangePicker(
+  void _showSyncfusionDateRangePicker() async {
+    await showDialog(
       context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-      initialDateRange: _selectedDateRange,
-      helpText: 'Select Date Range',
-      cancelText: 'Cancel',
-      confirmText: 'Apply',
-      saveText: 'Save',
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Colors.teal,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black87,
-              outline: Colors.grey.shade300,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.teal,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Date Range'),
+          content: Container(
+            height: 400,
+            width: 350,
+            child: SfDateRangePicker(
+              view: DateRangePickerView.month,
+              selectionMode: DateRangePickerSelectionMode.range,
+              showActionButtons: true,
+              onCancel: () {
+                Navigator.of(context).pop();
+              },
+              onSubmit: (Object? value) {
+                if (value != null && value is PickerDateRange) {
+                  final startDate = value.startDate;
+                  final endDate = value.endDate ?? value.startDate;
+                  
+                  if (startDate != null && endDate != null) {
+                    setState(() {
+                      _selectedDateRange = DateTimeRange(
+                        start: startDate,
+                        end: endDate,
+                      );
+                    });
+                    _applyFilters();
+                  }
+                }
+                Navigator.of(context).pop();
+              },
+              initialSelectedRange: _selectedDateRange != null
+                  ? PickerDateRange(
+                      _selectedDateRange!.start,
+                      _selectedDateRange!.end,
+                    )
+                  : null,
+              minDate: DateTime.now().subtract(const Duration(days: 365 * 50)),
+              maxDate: DateTime.now(),
+              monthCellStyle: DateRangePickerMonthCellStyle(
+                todayTextStyle: TextStyle(
+                  color: Colors.teal.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              rangeSelectionColor: Colors.teal.shade100,
+              startRangeSelectionColor: Colors.teal.shade600,
+              endRangeSelectionColor: Colors.teal.shade600,
+              selectionColor: Colors.teal.shade600,
+              todayHighlightColor: Colors.teal.shade300,
+              headerStyle: DateRangePickerHeaderStyle(
+                textStyle: TextStyle(
+                  color: Colors.teal.shade700,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
-            datePickerTheme: DatePickerThemeData(
-              headerBackgroundColor: Colors.teal,
-              headerForegroundColor: Colors.white,
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              dayOverlayColor: MaterialStateProperty.all(Colors.teal.withOpacity(0.1)),
-              todayBackgroundColor: MaterialStateProperty.all(Colors.teal.withOpacity(0.2)),
-              todayForegroundColor: MaterialStateProperty.all(Colors.teal.shade700),
-              yearOverlayColor: MaterialStateProperty.all(Colors.teal.withOpacity(0.1)),
-            ),
           ),
-          child: child!,
         );
       },
     );
-    
-    if (picked != null) {
-      setState(() => _selectedDateRange = picked);
-      _applyFilters();
-    }
   }
 
   void _clearFilters() {
@@ -351,9 +371,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Date Range and Clear Filters
                 Row(
                   children: [
-                    // Date Range Button with better styling
+                    // Date Range Button with better styling - Now uses Syncfusion picker
                     OutlinedButton.icon(
-                      onPressed: _showDateRangePicker,
+                      onPressed: _showSyncfusionDateRangePicker,
                       icon: Icon(Icons.date_range, size: 16, color: Colors.teal.shade700),
                       label: Text(
                         _selectedDateRange == null 

@@ -1,10 +1,13 @@
 from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
-from app.scripts.Main.answer import answer_question
+import json
+import asyncio
+from app.scripts.Main.answer import answer_question, answer_question_stream
 from app.databases.database import get_db, create_tables
 from app.databases.crud import NewsService
 from app.services.background_tasks import BackgroundTaskService
@@ -109,11 +112,46 @@ async def get_topics(db: Session = Depends(get_db)):
     topics = NewsService.get_available_topics(db)
     return {"topics": ["All"] + topics}
 
-
 @app.post("/ask")
 async def ask_question(req: QuestionRequest):
     result = answer_question(req.question)
     return result
+
+# New streaming endpoint
+@app.post("/ask/stream")
+async def ask_question_stream(req: QuestionRequest):
+    """Stream the answer generation process with live updates"""
+    
+    async def generate():
+        try:
+            # Send initial status
+            yield f"data: {json.dumps({'type': 'status', 'message': 'Processing your question...', 'step': 'init'})}\n\n"
+            await asyncio.sleep(0.1)
+            
+            # Stream the answer generation process
+            async for update in answer_question_stream(req.question):
+                yield f"data: {json.dumps(update)}\n\n"
+                await asyncio.sleep(0.01)  # Small delay to prevent overwhelming
+                
+        except Exception as e:
+            error_data = {
+                'type': 'error',
+                'message': f'Error: {str(e)}'
+            }
+            yield f"data: {json.dumps(error_data)}\n\n"
+        finally:
+            # Send completion signal
+            yield f"data: {json.dumps({'type': 'complete'})}\n\n"
+    
+    return StreamingResponse(
+        generate(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "text/event-stream",
+        }
+    )
 
 # Health check
 @app.get("/health")

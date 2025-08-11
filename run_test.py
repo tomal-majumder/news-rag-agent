@@ -8,7 +8,5 @@ def main():
     # result, time = answer_question("What is the news on USA election?", stream=True)
     print(result)
 
-
-
 if __name__ == "__main__": 
     main()

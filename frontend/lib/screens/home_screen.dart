@@ -255,26 +255,185 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadNews(isRefresh: true);
   }
 
+  // Updated: Show app guide dialog with more comprehensive info
+  void _showAppGuide() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.auto_awesome, color: Colors.teal.shade700, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'How NewsRoom AI Works',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Features list
+                const GuideFeatureItem(
+                  icon: Icons.rss_feed,
+                  iconColor: Colors.blue,
+                  title: 'Smart News Feed',
+                  description: 'Browse AI-curated news with intelligent summaries for every article.',
+                ),
+                
+                const SizedBox(height: 16),
+                
+                const GuideFeatureItem(
+                  icon: Icons.search,
+                  iconColor: Colors.green,
+                  title: 'Advanced Filtering',
+                  description: 'Search by keywords, filter by topics, and select date ranges.',
+                ),
+                
+                const SizedBox(height: 16),
+                
+                const GuideFeatureItem(
+                  icon: Icons.chat_bubble_outline,
+                  iconColor: Colors.purple,
+                  title: 'AI Chat Assistant',
+                  description: 'Click the chat button to ask questions about any news article using RAG technology.',
+                ),
+                
+                const SizedBox(height: 16),
+                
+                const GuideFeatureItem(
+                  icon: Icons.open_in_new,
+                  iconColor: Colors.orange,
+                  title: 'Read Full Articles',
+                  description: 'Click article titles or "Read Full" button to open original sources.',
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // CTA buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.teal.shade300),
+                        ),
+                        child: const Text('Got it!'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _showChatButtonHighlight();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Try AI Chat'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Highlight chat button
+  void _showChatButtonHighlight() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.arrow_downward, color: Colors.white),
+            const SizedBox(width: 8),
+            const Text('Look for the AI chat button in the bottom right!'),
+          ],
+        ),
+        backgroundColor: Colors.purple,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150,
+          left: 20,
+          right: 20,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text("NewsRoom AI", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Column(
+          children: [
+            const Text(
+              "NewsRoom AI", 
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
+            ),
+            Text(
+              "Smart news platform with AI assisted summaries and chat agent",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+                color: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
+        toolbarHeight: 70, // Slightly taller to accommodate subtitle
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: _showAppGuide,
+            tooltip: 'Learn how to use NewsRoom AI features',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshNews,
+            tooltip: 'Refresh news',
           ),
         ],
       ),
       body: Column(
         children: [
-          // Enhanced Filter Section
+          // Enhanced Filter Section (no welcome banner)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -505,6 +664,55 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: const FloatingChatButton(),
+    );
+  }
+}
+
+// Guide feature item widget
+class GuideFeatureItem extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String description;
+
+  const GuideFeatureItem({
+    super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

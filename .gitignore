@@ -7,3 +7,4 @@ __pycache__
 news-rag-env
 .python-version
 .DS_Store
+deploy/

@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.settings import DATABASE_URL
 
 import os
 
@@ -11,9 +10,11 @@ import os
 from app.databases.models import Base
 # Create the database engine
 # Ensure you have the correct database URL in your .env file or set it directly here
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
+DATABASE_URL= os.getenv("DATABASE_URL", "sqlite:///./news.db")  # Default to SQLite for local development
 
-
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
@@ -25,4 +26,6 @@ def get_db():
 
 # Create tables
 def create_tables():
+    # what this does is create all tables in the database
+    # based on the models defined in app/databases/models.py
     Base.metadata.create_all(bind=engine)

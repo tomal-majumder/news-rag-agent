@@ -36,7 +36,8 @@ class NewsArticle(Base):
     topic = Column(String(50), index=True)  # AI classified
     ai_summary = Column(Text)  # AI generated summary
     is_processed = Column(Boolean, default=False, index=True)
-    
+    is_embedded = Column(Boolean, default=False, index=True) 
+
     # Performance indexes
     __table_args__ = (
         Index('idx_topic_date', 'topic', 'published_at'),

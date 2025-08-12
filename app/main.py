@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel
 import json
 import asyncio
@@ -13,6 +13,11 @@ from app.databases.crud import NewsService
 from app.services.background_tasks import BackgroundTaskService
 from app.schemas import QuestionRequest
 from datetime import datetime, date
+from app.services.vector_service import VectorService
+from app.databases.models import NewsArticle
+
+# Initialize vector service
+vector_service = VectorService()
 
 # Pydantic models
 class ArticleResponse(BaseModel):
@@ -33,7 +38,30 @@ class NewsListResponse(BaseModel):
     page: int
     has_more: bool
 
-# Initialize FastAPI app
+class SimilarArticleResponse(BaseModel):
+    article: ArticleResponse
+    similarity_score: float
+
+class ArticleDetailResponse(BaseModel):
+    article: ArticleResponse
+    similar_articles: List[SimilarArticleResponse] = []
+
+class SystemStatsResponse(BaseModel):
+    articles: dict
+    vectors: dict
+    system: dict
+    timestamp: str
+
+class TrendingTopicsResponse(BaseModel):
+    trending_topics: List[dict]
+    period_days: int
+
+class SemanticSearchResponse(BaseModel):
+    query: str
+    results: List[dict]
+    total_found: int
+
+
 app = FastAPI(title="News AI Platform", version="1.0.0")
 
 # CORS middleware
@@ -46,7 +74,7 @@ app.add_middleware(
 )
 
 # Initialize background tasks
-background_service = BackgroundTaskService()
+background_service = BackgroundTaskService(vector_service=vector_service)
 
 @app.on_event("startup")
 async def startup_event():
@@ -54,7 +82,7 @@ async def startup_event():
     background_service.start()
     await background_service.fetch_and_process_news()
     await background_service.process_pending_articles()
-
+    await background_service.process_vectors_for_articles()
 # =============================================================================
 # API ENDPOINTS
 # =============================================================================
@@ -114,7 +142,7 @@ async def get_topics(db: Session = Depends(get_db)):
 
 @app.post("/ask")
 async def ask_question(req: QuestionRequest):
-    result = answer_question(req.question)
+    result = answer_question(req.question, vector_store=vector_service._get_vector_store())
     return result
 
 # New streaming endpoint
@@ -129,7 +157,7 @@ async def ask_question_stream(req: QuestionRequest):
             await asyncio.sleep(0.1)
             
             # Stream the answer generation process
-            async for update in answer_question_stream(req.question):
+            async for update in answer_question_stream(req.question, vector_store=vector_service._get_vector_store()):
                 yield f"data: {json.dumps(update)}\n\n"
                 await asyncio.sleep(0.01)  # Small delay to prevent overwhelming
                 
@@ -157,6 +185,160 @@ async def ask_question_stream(req: QuestionRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.get("/api/stats")
+async def get_system_stats(db: Session = Depends(get_db)):
+    """Get comprehensive system statistics"""
+    try:
+        # Get article stats from database
+        article_stats = NewsService.get_article_stats(db)
+        
+        # Get vector stats
+        vector_stats = vector_service.get_vector_stats()
+        
+        # Get background task status
+        system_status = await background_service.get_system_status()
+        
+        return {
+            "articles": article_stats,
+            "vectors": vector_stats,
+            "system": system_status,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting stats: {str(e)}")
+
+@app.get("/api/trending")
+async def get_trending_topics(
+    days: int = Query(7, ge=1, le=30),
+    db: Session = Depends(get_db)
+):
+    """Get trending topics in recent articles"""
+    trending = NewsService.get_trending_topics(db, days_back=days)
+    return {"trending_topics": trending, "period_days": days}
+
+@app.get("/api/sources")
+async def get_available_sources(db: Session = Depends(get_db)):
+    """Get available news sources"""
+    sources = NewsService.get_available_sources(db)
+    return {"sources": sources}
+
+@app.post("/api/search/semantic")
+async def semantic_search(
+    query: str = Query(..., description="Search query"),
+    k: int = Query(5, ge=1, le=20, description="Number of results"),
+    topic: Optional[str] = Query(None, description="Filter by topic"),
+    source: Optional[str] = Query(None, description="Filter by source")
+):
+    """Search articles using vector similarity"""
+    try:
+        # Build filter dictionary
+        filter_dict = {}
+        if topic and topic != "All":
+            filter_dict["topic"] = topic
+        if source:
+            filter_dict["source"] = source
+        
+        # Perform semantic search
+        results = await vector_service.search_similar_articles(
+            query=query,
+            k=k,
+            filter_dict=filter_dict if filter_dict else None
+        )
+        
+        return {
+            "query": query,
+            "results": results,
+            "total_found": len(results)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+
+@app.post("/api/admin/process-vectors")
+async def trigger_vector_processing():
+    """Manually trigger vector processing for unembedded articles"""
+    try:
+        await background_service.process_vectors_for_articles()
+        return {"message": "Vector processing triggered successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
+
+@app.post("/api/admin/cleanup")
+async def trigger_cleanup(
+    days_old: int = Query(30, ge=7, le=90, description="Delete content older than X days")
+):
+    """Manually trigger cleanup of old content"""
+    try:
+        db = SessionLocal()
+        
+        # Count what will be deleted
+        cutoff_date = datetime.now() - timedelta(days=days_old)
+        old_articles_count = db.query(NewsArticle).filter(
+            NewsArticle.published_at < cutoff_date
+        ).count()
+        
+        db.close()
+        
+        # Perform cleanup
+        await background_service.cleanup_old_content()
+        
+        return {
+            "message": f"Cleanup completed",
+            "cutoff_date": cutoff_date.isoformat(),
+            "articles_affected": old_articles_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+
+@app.get("/api/article/{article_id}")
+async def get_article_detail(
+    article_id: int,
+    include_similar: bool = Query(False, description="Include similar articles"),
+    db: Session = Depends(get_db)
+):
+    """Get detailed article information"""
+    article = NewsService.get_article_by_id(db, article_id)
+    
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    response = {
+        "article": ArticleResponse.from_orm(article),
+        "similar_articles": []
+    }
+    
+    # Optionally find similar articles using vector search
+    if include_similar and article.is_embedded:
+        try:
+            # Use article title and summary for similarity search
+            search_query = f"{article.title} {article.ai_summary or ''}"
+            similar_results = await vector_service.search_similar_articles(
+                query=search_query,
+                k=6  # Get 6 to exclude the original article
+            )
+            
+            # Filter out the original article and convert to response format
+            similar_articles = []
+            for result in similar_results:
+                if result["metadata"].get("article_id") != article_id:
+                    similar_article = NewsService.get_article_by_id(
+                        db, int(result["metadata"]["article_id"])
+                    )
+                    if similar_article:
+                        similar_articles.append({
+                            "article": ArticleResponse.from_orm(similar_article),
+                            "similarity_score": result["similarity_score"]
+                        })
+            
+            response["similar_articles"] = similar_articles[:5]  # Return top 5
+            
+        except Exception as e:
+            logging.error(f"Error finding similar articles: {e}")
+    
+    return response
 
 if __name__ == "__main__":
     import uvicorn

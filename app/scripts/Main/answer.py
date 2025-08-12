@@ -129,6 +129,8 @@ def answer_question(question, vector_store):
         print("No relevant chunks found.")
         return
     print(f"Retrieved {len(chunks)} chunks with scores: {scores}")
+    for chunk in chunks:
+        print(chunk)
 
     # then build optimized prompt
     if should_fallback_to_web(scores):

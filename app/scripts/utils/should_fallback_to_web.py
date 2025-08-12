@@ -1,7 +1,8 @@
 import os
 
-def should_fallback_to_web(scores, threshold=0.7):
-    """Fallback if majority of scores are weak"""
+def should_fallback_to_web(scores, threshold=0.5):
+    """Fallback if majority of scores are weak"""    
+
     if not scores:
         print("No scores available for fallback check")
         return True

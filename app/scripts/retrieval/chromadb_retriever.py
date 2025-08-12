@@ -15,7 +15,7 @@ def chromadb_retriever():
         return None
     return vector_store
 
-def retrieve_chunks(vector_store, question, k=5):
+def retrieve_chunks(vector_store, question, k=10):
     """Retrieve top-k chunks and return with similarity scores"""
     results = vector_store.similarity_search_with_score(question, k=k)
     chunks, scores = zip(*results) if results else ([], [])

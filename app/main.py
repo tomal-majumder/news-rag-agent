@@ -86,6 +86,14 @@ async def startup_event():
 # =============================================================================
 # API ENDPOINTS
 # =============================================================================
+# Health check endpoint
+@app.get("/")
+def read_root():
+    return {"message": "News RAG API is running!"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 @app.get("/api/news", response_model=NewsListResponse)
 async def get_news(
@@ -180,11 +188,6 @@ async def ask_question_stream(req: QuestionRequest):
             "Content-Type": "text/event-stream",
         }
     )
-
-# Health check
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
 
 
 @app.get("/api/stats")

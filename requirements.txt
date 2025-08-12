@@ -24,3 +24,4 @@ html5lib
 apscheduler # For background tasks
 aiohttp # For async HTTP requests
 pgvector # For vector database operations
+gunicorn

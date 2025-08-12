@@ -6,7 +6,6 @@ langchain_experimental
 transformers
 chromadb
 tavily-python
-torch
 datasets
 tiktoken
 groq

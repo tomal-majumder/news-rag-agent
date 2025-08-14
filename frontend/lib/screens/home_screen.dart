@@ -19,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   
   // Backend URL - Update this to your actual backend URL
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'http://13.59.168.233:8000';
   
   bool _isLoadingMore = false;
   bool _isRefreshing = false;

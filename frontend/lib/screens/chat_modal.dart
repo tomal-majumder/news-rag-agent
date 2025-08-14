@@ -119,7 +119,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
   Stream<String> _streamResponse(String message) async* {
     final request = http.Request(
       'POST',
-      Uri.parse('http://localhost:8000/ask/stream'),
+      Uri.parse('http://13.59.168.233:8000/ask/stream'),
     );
     
     request.headers.addAll({
@@ -282,7 +282,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/ask'),
+        Uri.parse('http://13.59.168.233:8000/ask'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'question': messageText}),
       );

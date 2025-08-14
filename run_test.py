@@ -1,12 +1,10 @@
 from app.scripts.Main.answer import answer_question
 from app.scripts.Main.answer import answer_question_stream
+from app.scripts.utils.get_embedding_model import get_embedding_model
 
 def main():
-    print("Running vector store test...")
-    # result, time = answer_question("What is the news on USA election?")
-    result = answer_question("Has Donald Trump been taken COVID seriously?")
-    # result, time = answer_question("What is the news on USA election?", stream=True)
-    print(result)
+   model = get_embedding_model()
+   
 
 if __name__ == "__main__": 
     main()

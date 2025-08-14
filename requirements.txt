@@ -1,9 +1,8 @@
 pandas
 numpy
 langchain-community
-sentence-transformers
 langchain_experimental
-transformers
+langchain-huggingface
 chromadb
 tavily-python
 datasets
@@ -24,3 +23,4 @@ apscheduler # For background tasks
 aiohttp # For async HTTP requests
 pgvector # For vector database operations
 gunicorn
+fastembed

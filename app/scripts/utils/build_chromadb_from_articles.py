@@ -6,7 +6,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import gc
 import time
 from langchain_experimental.text_splitter import SemanticChunker
-import torch 
 
 def build_chromadb_from_articles(df, embeddings, embedding_function, batch_size=400, splitter='recursive', collection_name="news_articles_", sample_type='tiny'):
     """Build ChromaDB from articles DataFrame - PERFORMANCE OPTIMIZED"""
@@ -126,9 +125,6 @@ def build_chromadb_from_articles(df, embeddings, embedding_function, batch_size=
             # Aggressive cleanup
             del documents, texts, metadatas, ids, batch_df
             gc.collect()
-
-            if use_gpu:
-                torch.cuda.empty_cache()
 
             batch_time = time.time() - batch_start_time
             memory_usage = get_memory_usage()

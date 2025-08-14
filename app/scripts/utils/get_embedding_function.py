@@ -1,11 +1,10 @@
-import torch
 from langchain import embedding_functions
 
 # MINIMAL ADDITION: Create ChromaDB-compatible embedding function
 def get_embedding_function():
     """Create GPU-optimized embeddings (call this instead of your current embedding creation)"""
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
     print(f"Creating embeddings on: {device}")
 
     # For ChromaDB collection creation, use ChromaDB's embedding function

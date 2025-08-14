@@ -1,0 +1,108 @@
+# Python virtual environments - CRITICAL TO EXCLUDE
+news-agent-venv/
+news-rag-env/
+news-rag-venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Data directories (usually not needed in container)
+data/
+datasets/
+
+# Assets (might be large media files)
+assets/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Logs (unless you specifically need them)
+logs/
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+README.md
+docs/
+
+# Development files
+.env.example
+
+# Frontend (since we're only dockerizing the backend)
+frontend/
+node_modules/
+*.lock
+
+# Large files that might be in your project
+*.tar.gz
+*.zip
+*.tar
+*.rar
+*.7z
+
+# Database files (unless needed)
+*.db
+*.sqlite
+
+# Test files
+test_*.py
+*_test.py
+run_test.py
+
+# Model files (if you have ML models)
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Media files
+*.mp4
+*.avi
+*.mov
+*.mp3
+*.wav
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Deployment keys (security)
+deploy/

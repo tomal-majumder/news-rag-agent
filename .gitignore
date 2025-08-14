@@ -5,6 +5,9 @@ data/vector_store
 .vscode
 __pycache__
 news-rag-env
+news-rag-venv
+news-agent-venv
 .python-version
 .DS_Store
 deploy/
+*.tar.gz

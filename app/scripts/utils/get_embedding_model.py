@@ -1,31 +1,27 @@
 import time
-from app.scripts.utils.get_device import get_device
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 
 def get_embedding_model():
-    """Test 2: Initialize and test embedding model with auto device"""
+    """Lightweight embeddings with FastEmbed (no torch, no sentence-transformers)."""
     print("\n" + "="*60)
     print("EMBEDDING MODEL")
     print("="*60)
 
-    # Simple device detection
-    device = get_device()
-    print(f" Using device: {device}")
+    device = 'cpu'
+    print(f" Detected device: {device} (FastEmbed runs on CPU)")
 
-    model_name = "all-MiniLM-L6-v2"
-    print(f"Loading embedding model: {model_name}")
+    # Good small models supported by FastEmbed
+    model_name = "BAAI/bge-small-en-v1.5"   # or "intfloat/e5-small-v2"
+    print(f"Loading FastEmbed model: {model_name}")
 
     try:
-        start_time = time.time()
-        embeddings = HuggingFaceEmbeddings(
+        start = time.time()
+        embeddings = FastEmbedEmbeddings(
             model_name=model_name,
-            model_kwargs={'device': device},  # Use detected device
-            encode_kwargs={'normalize_embeddings': True}
+            # Optional: put caches outside the image so containers stay small
         )
-        load_time = time.time() - start_time
-        print(f"Model loaded in {load_time:.2f} seconds")
+        print(f"Model loaded in {time.time() - start:.2f}s")
         return embeddings
-
     except Exception as e:
         print(f"Embedding model failed: {e}")
         return None

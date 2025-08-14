@@ -1,7 +1,7 @@
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from app.scripts.retrieval.chromadb_retriever import chromadb_retriever, retrieve_chunks
+from app.scripts.retrieval.chromadb_retriever import retrieve_chunks
 from app.scripts.prompts.build_prompt import build_local_prompt
 from app.scripts.prompts.build_prompt import build_web_prompt
 from app.scripts.agents.web_search_agent import run_web_search

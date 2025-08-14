@@ -129,13 +129,13 @@ def answer_question(question, vector_store):
         print("No relevant chunks found.")
         return
     print(f"Retrieved {len(chunks)} chunks with scores: {scores}")
-    for chunk in chunks:
-        print(chunk)
+    # for chunk in chunks:
+    #     print(chunk)
 
     # then build optimized prompt
     if should_fallback_to_web(scores):
         print("Not enough relevant context found in local archive. Using web fallback...")
-        web_snippets, urls = run_web_search(question)
+        web_snippets, urls = run_web_search(question) # 3 snippets
         sources = urls if urls else ["Web Search"]
         
         # Build optimized web context
@@ -143,10 +143,10 @@ def answer_question(question, vector_store):
         prompt = build_web_prompt(question, optimized_context)
     else:
         sources = [chunk.metadata.get("url") if chunk.metadata.get("url") 
-                            else chunk.metadata.get("title", "Unknown") for chunk in chunks]
+                            else chunk.metadata.get("title", "Unknown") for chunk in chunks[:5]]
         
         # Build optimized local context
-        optimized_context = build_optimized_context(chunks, max_tokens=6000)
+        optimized_context = build_optimized_context(chunks[:5], max_tokens=6000)
         prompt = build_local_prompt(question, optimized_context)
     
     # Calculate optimal response token allocation

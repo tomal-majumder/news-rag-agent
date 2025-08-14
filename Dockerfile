@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only the backend app directory and necessary files
 COPY app/ ./app/
-COPY .env .env
+# COPY .env .env
 
 # Set Python path to include the app directory
 ENV PYTHONPATH="${PYTHONPATH}:/app/app"

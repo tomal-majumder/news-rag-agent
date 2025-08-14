@@ -19,7 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   
   // Backend URL - Update this to your actual backend URL
-  static const String baseUrl = 'http://13.59.168.233:8000';
+  // static const String baseUrl = 'http://13.59.168.233:8000';
+  static const String baseUrl = '';
   
   bool _isLoadingMore = false;
   bool _isRefreshing = false;
@@ -57,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadTopics() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/topics'),
+        //Uri.parse('$baseUrl/api/topics'),        
+        Uri.parse('/api/topics'),
+
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -110,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
         queryParams['end_date'] = _selectedDateRange!.end.toIso8601String().split('T')[0];
       }
 
-      final uri = Uri.parse('$baseUrl/api/news').replace(
+      final uri = Uri.parse('/api/news').replace(
         queryParameters: queryParams,
       );
 

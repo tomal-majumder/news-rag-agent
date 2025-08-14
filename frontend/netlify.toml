@@ -1,0 +1,22 @@
+[[redirects]]
+  from = "/api/*"
+  to = "http://13.59.168.233:8000/api/:splat"
+  status = 200
+  force = true
+  
+[[redirects]]
+  from = "/ask/*"
+  to = "http://13.59.168.233:8000/ask/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "http://13.59.168.233:8000/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

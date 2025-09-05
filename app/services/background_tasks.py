@@ -24,50 +24,50 @@ class BackgroundTaskService:
     def start(self):
         """Start background tasks"""
         # Fetch new articles every 6 hours
-        self.scheduler.add_job(
-            self.fetch_and_process_news,
-            'cron',
-            hour='0,6,12,18',
-            minute=0,
-            id='fetch_news'
-        )
+        # self.scheduler.add_job(
+        #     self.fetch_and_process_news,
+        #     'cron',
+        #     hour='0,6,12,18',
+        #     minute=0,
+        #     id='fetch_news'
+        # )
         
-        # Process unprocessed articles every hour
-        self.scheduler.add_job(
-            self.process_pending_articles,
-            'interval',
-            hours=1,
-            id='process_articles'
-        )
+        # # Process unprocessed articles every hour
+        # self.scheduler.add_job(
+        #     self.process_pending_articles,
+        #     'interval',
+        #     hours=1,
+        #     id='process_articles'
+        # )
         
-        # Process articles for vector embeddings every 2 hours
-        self.scheduler.add_job(
-            self.process_vectors_for_articles,
-            'interval',
-            hours=2,
-            id='process_vectors'
-        )
+        # # Process articles for vector embeddings every 2 hours
+        # self.scheduler.add_job(
+        #     self.process_vectors_for_articles,
+        #     'interval',
+        #     hours=2,
+        #     id='process_vectors'
+        # )
         
-        # Cleanup old content daily at 3 AM (free tier management)
-        self.scheduler.add_job(
-            self.cleanup_old_content,
-            'cron',
-            hour=3,
-            minute=0,
-            id='cleanup_old_content'
-        )
+        # # Cleanup old content daily at 3 AM (free tier management)
+        # self.scheduler.add_job(
+        #     self.cleanup_old_content,
+        #     'cron',
+        #     hour=3,
+        #     minute=0,
+        #     id='cleanup_old_content'
+        # )
         
-        # Weekly comprehensive cleanup (Sundays at 4 AM)
-        self.scheduler.add_job(
-            self.weekly_maintenance,
-            'cron',
-            day_of_week=6,  # Sunday
-            hour=4,
-            minute=0,
-            id='weekly_maintenance'
-        )
+        # # Weekly comprehensive cleanup (Sundays at 4 AM)
+        # self.scheduler.add_job(
+        #     self.weekly_maintenance,
+        #     'cron',
+        #     day_of_week=6,  # Sunday
+        #     hour=4,
+        #     minute=0,
+        #     id='weekly_maintenance'
+        # )
         
-        self.scheduler.start()
+        # self.scheduler.start()
         logging.info("Background tasks started")
     
     async def fetch_and_process_news(self):

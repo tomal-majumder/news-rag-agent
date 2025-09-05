@@ -2,6 +2,8 @@
 
 Intelligent news aggregation platform with AI-powered chat assistant for instant news insights and analysis.
 
+Demo Video: https://drive.google.com/file/d/1-tQbNVdSCNDPggsLAMKv5-q8azZrjt0l/view?usp=sharing
+
 ![Demo GIF](assets/news_room_demo.gif)
 
 ## ✨ Features

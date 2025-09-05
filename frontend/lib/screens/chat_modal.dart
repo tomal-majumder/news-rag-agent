@@ -17,6 +17,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   List<Map<String, dynamic>> _messages = [];
   List<Map<String, dynamic>> chatHistory = [];
@@ -51,6 +52,11 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     _fadeController.dispose();
     _streamSubscription?.cancel();
     super.dispose();
+  }
+
+  // Helper method to determine if we're on mobile
+  bool _isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < 768;
   }
 
   void _scrollToBottom() {
@@ -92,6 +98,11 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     });
     _fadeController.reset();
     _fadeController.forward();
+    
+    // Close drawer on mobile after starting new chat
+    if (_isMobile(context) && _scaffoldKey.currentState?.isDrawerOpen == true) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _loadChat(int index) {
@@ -100,6 +111,11 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
       _selectedChatIndex = index;
     });
     _scrollToBottom();
+    
+    // Close drawer on mobile after loading chat
+    if (_isMobile(context) && _scaffoldKey.currentState?.isDrawerOpen == true) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _deleteChat(int index) {
@@ -214,7 +230,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                 
                 case 'error':
                   _messages.add({
-                    'text': "❌ Error: ${update['message']}",
+                    'text': "⚠ Error: ${update['message']}",
                     'isUser': false,
                   });
                   _isTyping = false;
@@ -234,7 +250,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
               _messages.removeLast();
             }
             _messages.add({
-              'text': "❌ Connection error: $error",
+              'text': "⚠ Connection error: $error",
               'isUser': false,
             });
             _isTyping = false;
@@ -256,7 +272,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
           _messages.removeLast();
         }
         _messages.add({
-          'text': "❌ Error: $e",
+          'text': "⚠ Error: $e",
           'isUser': false,
         });
         _isTyping = false;
@@ -306,13 +322,13 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
       } else {
         setState(() {
           _messages.removeWhere((m) => m['isTyping'] == true);
-          _messages.add({'text': "❌ Error: Failed to get response", 'isUser': false});
+          _messages.add({'text': "⚠ Error: Failed to get response", 'isUser': false});
         });
       }
     } catch (e) {
       setState(() {
         _messages.removeWhere((m) => m['isTyping'] == true);
-        _messages.add({'text': "❌ Error: $e", 'isUser': false});
+        _messages.add({'text': "⚠ Error: $e", 'isUser': false});
       });
     } finally {
       setState(() {
@@ -426,14 +442,12 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
     );
   }
 
-
-
   Widget _buildWelcomeScreen() {
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(_isMobile(context) ? 16 : 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -476,6 +490,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                   fontSize: 16,
                   color: Colors.grey.shade600,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
               const Text(
@@ -494,6 +509,9 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                   return GestureDetector(
                     onTap: () => _sendMessageStream(question),
                     child: Container(
+                      constraints: _isMobile(context) 
+                          ? BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8)
+                          : null,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -513,6 +531,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                           color: Colors.teal.shade700,
                           fontWeight: FontWeight.w500,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   );
@@ -527,7 +546,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
 
   Widget _buildSidebar() {
     return Container(
-      width: 280,
+      width: _isMobile(context) ? MediaQuery.of(context).size.width * 0.85 : 280,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -537,7 +556,9 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
             Colors.grey.shade100,
           ],
         ),
-        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+        border: _isMobile(context) 
+            ? null 
+            : Border(right: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Column(
         children: [
@@ -674,15 +695,27 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = _isMobile(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Ask AI'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
+        // Always show back button for navigation
+        automaticallyImplyLeading: true,
         actions: [
-          // Toggle streaming mode (optional)
+          // Show drawer menu button on mobile only
+          if (isMobile) 
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              tooltip: 'Chat History',
+            ),
+          // Settings menu
           PopupMenuButton<String>(
             onSelected: (value) {
               // You can add settings here
@@ -702,9 +735,12 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
           ),
         ],
       ),
+      // Use drawer for mobile, regular sidebar for desktop
+      drawer: isMobile ? _buildSidebar() : null,
       body: Row(
         children: [
-          _buildSidebar(),
+          // Only show sidebar on desktop
+          if (!isMobile) _buildSidebar(),
           
           // Main Chat Area
           Expanded(
@@ -716,7 +752,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                     ? _buildWelcomeScreen()
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(isMobile ? 12 : 16),
                         itemCount: _messages.length,
                         itemBuilder: (context, index) {
                           final message = _messages[index];
@@ -766,10 +802,10 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                               children: [
                                 Container(
                                   constraints: BoxConstraints(
-                                    maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                    maxWidth: MediaQuery.of(context).size.width * (isMobile ? 0.85 : 0.7),
                                   ),
                                   margin: const EdgeInsets.symmetric(vertical: 8),
-                                  padding: const EdgeInsets.all(16),
+                                  padding: EdgeInsets.all(isMobile ? 12 : 16),
                                   decoration: BoxDecoration(
                                     gradient: isUser
                                         ? LinearGradient(
@@ -790,7 +826,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                                     message['text'],
                                     style: TextStyle(
                                       color: isUser ? Colors.white : Colors.black87,
-                                      fontSize: 15,
+                                      fontSize: isMobile ? 14 : 15,
                                     ),
                                   ),
                                 ),
@@ -798,7 +834,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                                 // Show method and timing info
                                 if (!isUser && (method != null || timeTaken != null))
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 16, bottom: 4),
+                                    padding: EdgeInsets.only(left: isMobile ? 12 : 16, bottom: 4),
                                     child: Row(
                                       children: [
                                         if (method != null)
@@ -833,7 +869,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                                 // Sources
                                 if (!isUser && sources != null && sources.isNotEmpty)
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 16, bottom: 8),
+                                    padding: EdgeInsets.only(left: isMobile ? 12 : 16, bottom: 8),
                                     child: Wrap(
                                       spacing: 8,
                                       children: sources.map((src) {
@@ -861,7 +897,7 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                                                 _getDomain(src),
                                                 style: TextStyle(
                                                   color: Colors.blue.shade700,
-                                                  fontSize: 12,
+                                                  fontSize: isMobile ? 11 : 12,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
@@ -880,56 +916,73 @@ class _ChatModalState extends State<ChatModal> with TickerProviderStateMixin {
                 
                 // Input Area
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isMobile ? 12 : 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border(top: BorderSide(color: Colors.grey.shade200)),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: TextField(
-                            controller: _controller,
-                            decoration: const InputDecoration(
-                              hintText: "Ask me anything about news...",
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
+                  child: SafeArea(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.grey.shade300),
                             ),
-                            onSubmitted: (_) => _sendMessageStream(),
-                            enabled: !_isTyping,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.teal.shade400, Colors.teal.shade500],
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: IconButton(
-                          icon: _isTyping 
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            child: TextField(
+                              controller: _controller,
+                              decoration: InputDecoration(
+                                hintText: isMobile 
+                                    ? "Ask me anything..."
+                                    : "Ask me anything about news...",
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 16 : 20, 
+                                  vertical: isMobile ? 10 : 12
                                 ),
-                              )
-                            : const Icon(Icons.send, color: Colors.white),
-                          onPressed: _isTyping ? null : _sendMessageStream,
+                              ),
+                              onSubmitted: (_) => _sendMessageStream(),
+                              enabled: !_isTyping,
+                              maxLines: isMobile ? 3 : 1,
+                              minLines: 1,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.teal.shade400, Colors.teal.shade500],
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: IconButton(
+                            icon: _isTyping 
+                              ? SizedBox(
+                                  width: isMobile ? 18 : 20,
+                                  height: isMobile ? 18 : 20,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.send, 
+                                  color: Colors.white,
+                                  size: isMobile ? 20 : 24,
+                                ),
+                            onPressed: _isTyping ? null : _sendMessageStream,
+                            constraints: BoxConstraints(
+                              minWidth: isMobile ? 40 : 48,
+                              minHeight: isMobile ? 40 : 48,
+                            ),
+                            padding: EdgeInsets.all(isMobile ? 8 : 12),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

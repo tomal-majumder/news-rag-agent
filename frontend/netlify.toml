@@ -1,18 +1,18 @@
 [[redirects]]
   from = "/api/*"
-  to = "http://13.59.168.233:8000/api/:splat"
+  to = "http://18.188.234.162:8000/api/:splat"
   status = 200
   force = true
   
 [[redirects]]
   from = "/ask/*"
-  to = "http://13.59.168.233:8000/ask/:splat"
+  to = "http://18.188.234.162:8000/ask/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/health"
-  to = "http://13.59.168.233:8000/health"
+  to = "http://18.188.234.162:8000/health"
   status = 200
   force = true
 

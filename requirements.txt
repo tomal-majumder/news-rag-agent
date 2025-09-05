@@ -1,5 +1,5 @@
 pandas
-numpy
+numpy<2.0
 langchain-community
 langchain_experimental
 langchain-huggingface
@@ -24,3 +24,4 @@ aiohttp # For async HTTP requests
 pgvector # For vector database operations
 gunicorn
 fastembed
+onnxruntime

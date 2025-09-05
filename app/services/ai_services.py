@@ -39,10 +39,12 @@ class AIService:
         TOPIC: [topic]
         SUMMARY: [summary]
         """
-        
+        ai_model = "llama-3.1-8b-instant"
+        print("Doing summarization/classification with model..." + ai_model)
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.3-70b-versatile",  # Good balance of speed and quality
+                #model="llama-3.3-70b-versatile",  # Good balance of speed and quality
+                model=ai_model,  # Faster, cheaper but less accurate
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=200,
                 temperature=0.1  # Low temperature for consistent classification

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from .models import NewsArticle
 import logging
+from sqlalchemy import or_, and_
 
 class NewsService:
     
@@ -49,12 +50,53 @@ class NewsService:
         # Order by date (newest first) and paginate
         return query.order_by(desc(NewsArticle.published_at)).offset(skip).limit(limit).all()
     
+    
+
     @staticmethod
     def get_unprocessed_articles(db: Session, limit: int = 50) -> List[NewsArticle]:
-        """Get articles that need AI processing"""
-        return db.query(NewsArticle).filter(
-            NewsArticle.is_processed == False
-        ).limit(limit).all()
+        """Get articles that need AI processing.
+        Criteria:
+          - is_processed is False
+          - OR ai_summary exists but contains any known bad snippet
+        """
+        BAD_SUMMARY_SNIPPETS = [
+            # tweak to your exact trigger
+            "Summary unavailable due to error",
+        ]
+
+        bad_summary_filter = or_(
+            *[NewsArticle.ai_summary.ilike(f"%{s}%") for s in BAD_SUMMARY_SNIPPETS]
+        )
+        result = db.query(NewsArticle).filter(
+                or_(
+                    NewsArticle.is_processed.is_(False),
+                    and_(NewsArticle.ai_summary.isnot(None), bad_summary_filter),
+                )
+            ).order_by(NewsArticle.published_at.asc()).limit(limit).all()
+        
+        print(f"Found {len(result)} unprocessed articles.")
+        # find who has bad summaries
+        bad_summaries = db.query(NewsArticle).filter(
+            NewsArticle.ai_summary.isnot(None),
+            bad_summary_filter
+        ).all()
+        print(f"Of these, {len(bad_summaries)} have bad summaries.")
+        
+        return (
+            db.query(NewsArticle)
+            .filter(
+                or_(
+                    NewsArticle.is_processed.is_(False),
+                    and_(NewsArticle.ai_summary.isnot(None), bad_summary_filter),
+                )
+            )
+            .order_by(NewsArticle.published_at.asc())
+            .limit(limit)
+            .all()
+        )
+        # return db.query(NewsArticle).filter(
+        #     NewsArticle.is_processed == False
+        # ).limit(limit).all()
     
     @staticmethod
     def get_unembedded_articles(db: Session, limit: int = 50) -> List[NewsArticle]:
